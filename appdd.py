@@ -7,43 +7,43 @@ from docx import Document
 from docx.shared import Pt, Cm, Mm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.style import WD_STYLE_TYPE
-from openai import OpenAI
+import google.generativeai as genai
 
 # -------------------------------------------------------------------
-# CORE FUNCTION: GỌI OPENAI LẤY SƠ ĐỒ CẤU TRÚC (JSON MAPPING)
+# CORE FUNCTION: GỌI GEMINI LẤY SƠ ĐỒ CẤU TRÚC (JSON MAPPING)
 # -------------------------------------------------------------------
 def get_structure_from_ai(doc_text_indexed, api_key):
-    client = OpenAI(api_key=api_key)
+    genai.configure(api_key=api_key)
+    # Kích hoạt chế độ ép trả về JSON của Gemini 1.5
+    model = genai.GenerativeModel(
+        'gemini-1.5-pro',
+        generation_config={"response_mime_type": "application/json", "temperature": 0.1}
+    )
     
-    system_prompt = """Bạn là chuyên gia phân tích cấu trúc văn bản kỹ thuật.
+    prompt = f"""Bạn là chuyên gia phân tích cấu trúc văn bản kỹ thuật.
 Nhiệm vụ của bạn là đọc văn bản đã được đánh số dòng (Ví dụ: [0] Nội dung...) và xác định xem dòng nào là Tiêu đề (Heading).
 Phân loại:
 - Cấp 1 (level: 1): Các Phần, Chương lớn.
 - Cấp 2 (level: 2): Các Mục lớn (I, II, III...).
 - Cấp 3 (level: 3): Các Mục nhỏ (1, 2, 3, a, b, c...).
 
-TRẢ VỀ DUY NHẤT MỘT ĐỊNH DẠNG JSON. Không giải thích gì thêm:
-{
+BẮT BUỘC TRẢ VỀ ĐỊNH DẠNG JSON NHƯ SAU:
+{{
   "headings": [
-    {"id": 0, "level": 1},
-    {"id": 5, "level": 2}
+    {{"id": 0, "level": 1}},
+    {{"id": 5, "level": 2}}
   ]
-}
-Chỉ liệt kê các ID thực sự là tiêu đề, bỏ qua nội dung bình thường."""
+}}
+Chỉ liệt kê các ID thực sự là tiêu đề, bỏ qua nội dung bình thường.
+
+VĂN BẢN ĐẦU VÀO:
+{doc_text_indexed}"""
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": doc_text_indexed}
-            ],
-            response_format={"type": "json_object"},
-            temperature=0.1
-        )
-        return json.loads(response.choices[0].message.content)
+        response = model.generate_content(prompt)
+        return json.loads(response.text)
     except Exception as e:
-        raise Exception(f"Lỗi khi kết nối OpenAI API: {str(e)}")
+        raise Exception(f"Lỗi khi kết nối Gemini API: {str(e)}")
 
 # -------------------------------------------------------------------
 # CORE FUNCTION: CẤU HÌNH STYLE NĐ30 CHO FILE
@@ -145,15 +145,15 @@ def apply_structure_to_doc(doc, json_structure):
 def main():
     st.set_page_config(page_title="Genesis Auto-Formatter", page_icon="📄", layout="centered")
     
-    st.title("📄 Genesis Auto-Formatter v2.2 (Cloud Edition)")
+    st.title("📄 Genesis Auto-Formatter v2.3 (Gemini Cloud Edition)")
     st.markdown("**Kiến trúc In-Place Mutation: Định dạng NĐ 30/2020/NĐ-CP với Vị trí Tuyệt đối 100%.**")
-    st.info("💡 Trí tuệ nhân tạo sẽ tự động cơ cấu lại các tiêu đề, trong khi hệ thống mã hóa bảo vệ nguyên vẹn 100% hình ảnh và bảng biểu của bạn.")
+    st.info("💡 Trí tuệ nhân tạo (Gemini) sẽ tự động cơ cấu lại các tiêu đề, trong khi hệ thống mã hóa bảo vệ nguyên vẹn 100% hình ảnh và bảng biểu của bạn.")
 
     # [BẢO MẬT]: Lấy API Key từ Két sắt Cloud (Secrets)
     try:
-        api_key = st.secrets["OPENAI_API_KEY"]
+        api_key = st.secrets["GEMINI_API_KEY"] # Đã đổi tên biến
     except KeyError:
-        st.error("❌ CẢNH BÁO BẢO MẬT: Hệ thống chưa được cấp API Key. Vui lòng cấu hình Két sắt (Secrets) trên máy chủ.")
+        st.error("❌ CẢNH BÁO BẢO MẬT: Hệ thống chưa được cấp GEMINI_API_KEY. Vui lòng cấu hình Két sắt (Secrets) trên máy chủ.")
         st.stop()
 
     uploaded_file = st.file_uploader("📥 Tải lên file Word (.docx) lộn xộn của bạn", type=["docx"])
@@ -177,7 +177,7 @@ def main():
                         
                 progress_bar.progress(30)
 
-                status_text.markdown("🧠 **Bước 2:** AI Structural Engineer đang phân tích Sơ đồ Heading (Công nghệ Bypass Token Limit)...")
+                status_text.markdown("🧠 **Bước 2:** Gemini AI đang phân tích Sơ đồ Heading (Công nghệ Bypass Token Limit)...")
                 json_structure = get_structure_from_ai(doc_text_indexed, api_key)
                 progress_bar.progress(70)
 
