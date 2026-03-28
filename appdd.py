@@ -144,7 +144,7 @@ def apply_structure_to_doc(doc, json_structure):
 def main():
     st.set_page_config(page_title="Genesis Auto-Formatter", page_icon="📄", layout="centered")
     
-    st.title("📄 Genesis Auto-Formatter v3.0 (Gemini Engine)")
+    st.title("📄 Định dạng văn bản tự động (.docx)")
     st.markdown("**Kiến trúc In-Place Mutation: Định dạng NĐ 30/2020/NĐ-CP với Vị trí Tuyệt đối 100%.**")
     st.info("💡 Trí tuệ nhân tạo (Gemini Flash) sẽ tự động cơ cấu lại các tiêu đề, trong khi hệ thống mã hóa bảo vệ nguyên vẹn 100% hình ảnh và bảng biểu của bạn.")
 
