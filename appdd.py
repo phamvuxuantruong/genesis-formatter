@@ -14,9 +14,9 @@ import google.generativeai as genai
 # -------------------------------------------------------------------
 def get_structure_from_ai(doc_text_indexed, api_key):
     genai.configure(api_key=api_key)
-    # Kích hoạt chế độ ép trả về JSON của Gemini 1.5
+    # Kích hoạt chế độ ép trả về JSON của Gemini 1.5 Flash (Bản vá lỗi 404)
     model = genai.GenerativeModel(
-        'gemini-1.5-pro',
+        'gemini-1.5-flash',
         generation_config={"response_mime_type": "application/json", "temperature": 0.1}
     )
     
@@ -145,13 +145,13 @@ def apply_structure_to_doc(doc, json_structure):
 def main():
     st.set_page_config(page_title="Genesis Auto-Formatter", page_icon="📄", layout="centered")
     
-    st.title("📄 Genesis Auto-Formatter v2.3 (Gemini Cloud Edition)")
+    st.title("📄 Genesis Auto-Formatter v3.0 (Gemini Engine)")
     st.markdown("**Kiến trúc In-Place Mutation: Định dạng NĐ 30/2020/NĐ-CP với Vị trí Tuyệt đối 100%.**")
-    st.info("💡 Trí tuệ nhân tạo (Gemini) sẽ tự động cơ cấu lại các tiêu đề, trong khi hệ thống mã hóa bảo vệ nguyên vẹn 100% hình ảnh và bảng biểu của bạn.")
+    st.info("💡 Trí tuệ nhân tạo (Gemini Flash) sẽ tự động cơ cấu lại các tiêu đề, trong khi hệ thống mã hóa bảo vệ nguyên vẹn 100% hình ảnh và bảng biểu của bạn.")
 
     # [BẢO MẬT]: Lấy API Key từ Két sắt Cloud (Secrets)
     try:
-        api_key = st.secrets["GEMINI_API_KEY"] # Đã đổi tên biến
+        api_key = st.secrets["GEMINI_API_KEY"]
     except KeyError:
         st.error("❌ CẢNH BÁO BẢO MẬT: Hệ thống chưa được cấp GEMINI_API_KEY. Vui lòng cấu hình Két sắt (Secrets) trên máy chủ.")
         st.stop()
