@@ -12,9 +12,6 @@ import google.generativeai as genai
 # -------------------------------------------------------------------
 # CORE FUNCTION: GỌI GEMINI LẤY SƠ ĐỒ CẤU TRÚC (JSON MAPPING)
 # -------------------------------------------------------------------
-# -------------------------------------------------------------------
-# CORE FUNCTION: GỌI GEMINI LẤY SƠ ĐỒ CẤU TRÚC (JSON MAPPING)
-# -------------------------------------------------------------------
 def get_structure_from_ai(doc_text_indexed, api_key):
     genai.configure(api_key=api_key)
     
@@ -38,33 +35,15 @@ VĂN BẢN ĐẦU VÀO:
 {doc_text_indexed}"""
 
     try:
-        # ƯU TIÊN 1: Thử gọi bản 1.5 Flash mới nhất (Xử lý file siêu dài)
+        # Gọi thẳng model đời mới nhất đang được Google hỗ trợ (Gemini 2.5 Flash)
         model = genai.GenerativeModel(
-            'gemini-1.5-flash-latest', # Dùng tên đầy đủ thay vì tên viết tắt
+            'gemini-2.5-flash',
             generation_config={"response_mime_type": "application/json", "temperature": 0.1}
         )
         response = model.generate_content(prompt)
         return json.loads(response.text)
-    except Exception as e_flash:
-        # CỨU CÁNH 2: Nếu Google báo 404, lập tức lùi về bản Gemini Pro ổn định toàn cầu
-        try:
-            model_pro = genai.GenerativeModel(
-                'gemini-pro',
-                generation_config={"temperature": 0.1}
-            )
-            response_pro = model_pro.generate_content(prompt)
-            
-            # Làm sạch chuỗi JSON lỡ như AI bọc thêm mã ```json
-            cleaned_text = response_pro.text.strip()
-            if cleaned_text.startswith("```json"):
-                cleaned_text = cleaned_text[7:-3].strip()
-            elif cleaned_text.startswith("```"):
-                cleaned_text = cleaned_text[3:-3].strip()
-                
-            return json.loads(cleaned_text)
-        except Exception as e_pro:
-            raise Exception(f"Lỗi mạng Google API: {str(e_pro)}")
-
+    except Exception as e:
+        raise Exception(f"Lỗi mạng Google API: {str(e)}")
 # -------------------------------------------------------------------
 # CORE FUNCTION: CẤU HÌNH STYLE NĐ30 CHO FILE
 # -------------------------------------------------------------------
